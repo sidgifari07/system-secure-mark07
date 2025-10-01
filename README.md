@@ -51,6 +51,3 @@ Schedules post-reboot verification to confirm changes.
 Robust Logging
 ===============
 Tracks MAC changes, DNS configuration, Machine GUID updates, and SID regeneration.
-
-
-Skip confirmation prompts: --yes

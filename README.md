@@ -12,9 +12,9 @@ type=yes
 ==========
 <img width="1077" height="632" alt="image" src="https://github.com/user-attachments/assets/1225ae69-009f-444e-98d6-d1a520c7e29a" />
 ===================================================================================================================================
+
 A comprehensive Windows system security and anonymization tool designed to enhance privacy, randomize identifiers, and prepare machines for secure deployment. Ideal for cybersecurity professionals, IT admins, and penetration testers looking to obfuscate system fingerprints or automate post-deployment hardening.
-===================
-Features
+
 
 MAC Address Randomization
 =========================

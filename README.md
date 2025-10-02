@@ -63,4 +63,9 @@ This tool helps **obfuscate system fingerprints** and **automate post-deployment
    - Type `A` for advanced options
 
 
+## Demo / Walkthrough Video
+
+[![Watch the video on YouTube](https://img.youtube.com/vi/Hc1B5MA4E7o/0.jpg)](https://www.youtube.com/watch?v=Hc1B5MA4E7o)
+
+**[Watch on YouTube →](https://www.youtube.com/watch?v=Hc1B5MA4E7o)**
 

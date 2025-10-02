@@ -9,10 +9,11 @@ right click=mouse
 <img width="393" height="181" alt="image" src="https://github.com/user-attachments/assets/c8339464-e1fe-41f8-b873-5b442692837f" />
 ==================================================================================================================================
 type=yes
-==========
 <img width="1077" height="632" alt="image" src="https://github.com/user-attachments/assets/1225ae69-009f-444e-98d6-d1a520c7e29a" />
 ===================================================================================================================================
-
+type=A
+<img width="1087" height="635" alt="image" src="https://github.com/user-attachments/assets/ba95d2ff-9457-4c15-9fa1-34be2411d49b" />
+===================================================================================================================================
 A comprehensive Windows system security and anonymization tool designed to enhance privacy, randomize identifiers, and prepare machines for secure deployment. Ideal for cybersecurity professionals, IT admins, and penetration testers looking to obfuscate system fingerprints or automate post-deployment hardening.
 
 

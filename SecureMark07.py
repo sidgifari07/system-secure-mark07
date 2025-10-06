@@ -12,76 +12,59 @@ import argparse
 import stat
 import re
 import winreg
-import random
+
 # =========================
 # Config / Constants
 # =========================
 LOG_FILE = os.path.join(os.getenv("TEMP") or ".", "secure.log")
 SCHEDULED_TASK_NAME = "SecureRotationTask"
-SCHEDULED_TASK_NAME_MAC = "SecureMACRandomize"
 TEMP_DIR = os.getenv("TEMP") or "."
 
-
-
 DNS_V4 = [
-    "1.1.1.1", "1.0.0.1",                     # Cloudflare
-    "8.8.8.8", "8.8.4.4",                     # Google
-    "9.9.9.9", "149.112.112.112",             # Quad9
-    "185.228.168.9", "185.228.168.10",        # CleanBrowsing
-    "208.67.222.222", "208.67.220.220",       # OpenDNS
-    "84.200.69.80", "84.200.70.40",           # DNS.WATCH
-    "64.6.64.6", "64.6.65.6",                 # Verisign
-    "8.26.56.26", "8.20.247.20",              # Comodo Secure DNS
-    "195.46.39.39", "195.46.39.40",           # SafeDNS
-    "76.76.19.19", "76.223.122.150",          # Alternate DNS
-    "94.140.14.14", "94.140.15.15"            # AdGuard DNS
+    "1.1.1.1", "1.0.0.1",
+    "8.8.8.8", "8.8.4.4",
+    "9.9.9.9", "149.112.112.112",
+    "185.228.168.9", "185.228.168.10",
+    "208.67.222.222", "208.67.220.220",
+    "84.200.69.80", "84.200.70.40",
+    "64.6.64.6", "64.6.65.6",
+    "8.26.56.26", "8.20.247.20",
+    "195.46.39.39", "195.46.39.40",
+    "76.76.19.19", "76.223.122.150",
+    "94.140.14.14", "94.140.15.15"
 ]
 
 DNS_V6 = [
-    "2606:4700:4700::1111", "2606:4700:4700::1001",  # Cloudflare
-    "2001:4860:4860::8888", "2001:4860:4860::8844",  # Google
-    "2620:fe::fe", "2620:fe::9",                     # Quad9
-    "2a0d:2a00:1::2", "2a0d:2a00:1::1",             # CleanBrowsing
-    "2620:119:35::35", "2620:119:53::53",           # OpenDNS
-    "2001:1608:10:25::1c04:b12f", "2001:1608:10:25::9249:d69b",  # DNS.WATCH
-    "2620:74:1b::1:1", "2620:74:1c::2:2",           # Verisign
-    "2001:67c:28a4::", "2001:67c:28a4::1",          # Digitalcourage
-    "2a02:6b8::feed:0ff", "2a02:6b8:0:1::feed:0ff", # Yandex DNS
-    "2a10:50c0::ad1:ff", "2a10:50c0::ad2:ff",       # AdGuard DNS
-    "2a0d:2a00:2::", "2a0d:2a00:2::1"               # NextDNS
+    "2606:4700:4700::1111", "2606:4700:4700::1001",
+    "2001:4860:4860::8888", "2001:4860:4860::8844",
+    "2620:fe::fe", "2620:fe::9",
+    "2a0d:2a00:1::2", "2a0d:2a00:1::1",
+    "2620:119:35::35", "2620:119:53::53",
+    "2001:1608:10:25::1c04:b12f", "2001:1608:10:25::9249:d69b",
+    "2620:74:1b::1:1", "2620:74:1c::2:2",
+    "2001:67c:28a4::", "2001:67c:28a4::1",
+    "2a02:6b8::feed:0ff", "2a02:6b8:0:1::feed:0ff",
+    "2a10:50c0::ad1:ff", "2a10:50c0::ad2:ff",
+    "2a0d:2a00:2::", "2a0d:2a00:2::1"
 ]
 
-# Add CIDR notation
-DNS_V4_CIDR = [ip + "/24" for ip in DNS_V4]
-DNS_V6_CIDR = [ip + "/64" for ip in DNS_V6]
-
-# Number of random servers to pick
-NUM_IPV4_DNS = 10
-NUM_IPV6_DNS = 10
-
-# Random sample (no duplicates)
-rand_v4_list = random.sample(DNS_V4_CIDR, min(NUM_IPV4_DNS, len(DNS_V4_CIDR)))
-rand_v6_list = random.sample(DNS_V6_CIDR, min(NUM_IPV6_DNS, len(DNS_V6_CIDR)))
-
-
+NUM_IPV4_DNS = 5
+NUM_IPV6_DNS = 5
 
 # =========================
 # Helper Functions
 # =========================
 
 def is_admin() -> bool:
-    """Check if the script is running with administrator privileges."""
     try:
         return ctypes.windll.shell32.IsUserAnAdmin() != 0
     except Exception:
         return False
 
 def run_as_admin() -> bool:
-    """Re-run the script with admin rights. Returns True if elevation was started."""
     try:
         script = os.path.abspath(sys.argv[0])
         params = " ".join([f'"{arg}"' for arg in sys.argv[1:]])
-        # ShellExecute returns >32 if successful
         ret = ctypes.windll.shell32.ShellExecuteW(
             None, "runas", sys.executable, f'"{script}" {params}', None, 1
         )
@@ -91,7 +74,6 @@ def run_as_admin() -> bool:
         return False
 
 def log_message(message: str):
-    """Log message to console and log file."""
     try:
         os.makedirs(os.path.dirname(LOG_FILE), exist_ok=True)
     except Exception:
@@ -105,13 +87,17 @@ def log_message(message: str):
     except Exception:
         pass
 
-def run_powershell(cmd):
-    """Run a PowerShell command and return (returncode, stdout, stderr)."""
-    proc = subprocess.run(
-        ["powershell", "-NoProfile", "-ExecutionPolicy", "Bypass", "-Command", cmd],
-        capture_output=True, text=True, timeout=30
-    )
-    return proc.returncode, proc.stdout.strip(), proc.stderr.strip()
+def run_powershell(cmd: str, timeout=60):
+    try:
+        proc = subprocess.run(
+            ["powershell", "-NoProfile", "-ExecutionPolicy", "Bypass", "-Command", cmd],
+            capture_output=True, text=True, timeout=timeout
+        )
+        return proc.returncode, proc.stdout.strip(), proc.stderr.strip()
+    except subprocess.TimeoutExpired:
+        return -1, "", "PowerShell command timed out"
+    except Exception as e:
+        return -1, "", f"PowerShell execution failed: {str(e)}"
 
 def banner():
     """Display banner."""
@@ -136,22 +122,42 @@ Logs saved to: {LOG_FILE}
 """)
 
 # =========================
-# Enhanced MAC Address Functions (All Physical Adapters)
+# Enhanced Network Detection Functions
 # =========================
 
-def get_all_physical_adapters() -> list:
-    """
-    Get all physical network adapters (both wired and wireless) that are not virtual.
-    Returns list of adapter names.
-    """
-    ps_cmd = r"""
-    $adapters = Get-NetAdapter -Physical -ErrorAction SilentlyContinue |
-                Where-Object { 
-                    $_.InterfaceDescription -notmatch 'Virtual|VMware|Hyper-V|Microsoft\sHyper-V|TAP|Tunnel|Loopback' -and
-                    $_.InterfaceDescription -match 'Ethernet|Wireless|Wi-Fi|802.11|LAN|Network'
-                } |
-                Select-Object Name, InterfaceDescription, Status, MacAddress, LinkSpeed
-    $adapters | ConvertTo-Json -Compress
+def get_all_network_adapters():
+    """Get all network adapters with detailed information."""
+    ps_cmd = """
+    $adapters = Get-NetAdapter -Physical | Where-Object {
+        $_.InterfaceDescription -notmatch 'Virtual|VMware|Hyper-V|TAP|Tunnel|Loopback'
+    } | Select-Object Name, InterfaceDescription, Status, MacAddress, LinkSpeed, 
+       @{Name="InterfaceIndex"; Expression={$_.ifIndex}},
+       @{Name="ConnectorPresent"; Expression={$_.ConnectorPresent}},
+       @{Name="MediaType"; Expression={$_.MediaType}},
+       @{Name="InterfaceGuid"; Expression={$_.InterfaceGuid}}
+    
+    # Get IP configuration for each adapter
+    $result = @()
+    foreach ($adapter in $adapters) {
+        $ipConfig = Get-NetIPAddress -InterfaceIndex $adapter.InterfaceIndex -AddressFamily IPv4 -ErrorAction SilentlyContinue
+        $dnsClient = Get-DnsClientServerAddress -InterfaceIndex $adapter.InterfaceIndex -AddressFamily IPv4 -ErrorAction SilentlyContinue
+        
+        $result += [PSCustomObject]@{
+            Name = $adapter.Name
+            Description = $adapter.InterfaceDescription
+            Status = $adapter.Status
+            MacAddress = $adapter.MacAddress
+            LinkSpeed = $adapter.LinkSpeed
+            InterfaceIndex = $adapter.InterfaceIndex
+            ConnectorPresent = $adapter.ConnectorPresent
+            MediaType = $adapter.MediaType
+            InterfaceGuid = $adapter.InterfaceGuid
+            IPAddress = if ($ipConfig) { $ipConfig.IPAddress } else { $null }
+            DNSServers = if ($dnsClient) { $dnsClient.ServerAddresses } else { @() }
+            HasIP = [bool]($ipConfig -and $ipConfig.IPAddress)
+        }
+    }
+    $result | ConvertTo-Json -Depth 3
     """
     
     try:
@@ -162,79 +168,68 @@ def get_all_physical_adapters() -> list:
                 return [adapters]
             return adapters
     except Exception as e:
-        log_message(f"Error getting physical adapters: {e}")
-    
-    # Fallback method
-    try:
-        ps_cmd_fallback = r"""
-        Get-NetAdapter -Physical | Where-Object { 
-            $_.InterfaceDescription -notmatch 'Virtual|VMware|Hyper-V' 
-        } | Select-Object Name | ConvertTo-Json
-        """
-        rc, out, err = run_powershell(ps_cmd_fallback)
-        if rc == 0 and out:
-            adapters = json.loads(out)
-            if isinstance(adapters, dict):
-                return [adapters['Name']]
-            return [adapter['Name'] for adapter in adapters]
-    except Exception:
-        pass
+        log_message(f"Error getting network adapters: {e}")
     
     return []
+
+def get_active_adapter():
+    """Get the first active network adapter with internet connectivity."""
+    # First try to get adapters with IP addresses
+    adapters = get_all_network_adapters()
+    
+    # Prioritize adapters with IP addresses
+    adapters_with_ip = [a for a in adapters if a.get('HasIP', False)]
+    if adapters_with_ip:
+        return adapters_with_ip[0]
+    
+    # Then try adapters that are connected but might not have IP yet
+    connected_adapters = [a for a in adapters if a.get('Status', '').lower() == 'up']
+    if connected_adapters:
+        return connected_adapters[0]
+    
+    # Finally, return any physical adapter
+    if adapters:
+        return adapters[0]
+    
+    return None
 
 def detect_network_interfaces():
     """Detect all network interfaces including wired and wireless."""
     wifi_adapters = []
     wired_adapters = []
     
-    try:
-        ps_cmd = r"""
-        $adapters = Get-NetAdapter -Physical -ErrorAction SilentlyContinue |
-                    Where-Object { $_.InterfaceDescription -notmatch 'Virtual|VMware|Hyper-V' }
-        $results = @()
-        foreach ($adapter in $adapters) {
-            $type = "Unknown"
-            if ($adapter.InterfaceDescription -match 'Wireless|Wi-Fi|802.11') {
-                $type = "Wireless"
-            } elseif ($adapter.InterfaceDescription -match 'Ethernet|LAN') {
-                $type = "Wired"
-            }
-            $results += [PSCustomObject]@{
-                Name = $adapter.Name
-                Type = $type
-                Description = $adapter.InterfaceDescription
-                Status = $adapter.Status
-                MacAddress = $adapter.MacAddress
-            }
-        }
-        $results | ConvertTo-Json -Compress
-        """
+    adapters = get_all_network_adapters()
+    
+    for adapter in adapters:
+        description = adapter.get('Description', '').lower()
+        name = adapter.get('Name', '').lower()
         
-        rc, out, err = run_powershell(ps_cmd)
-        if rc == 0 and out:
-            adapters = json.loads(out)
-            if isinstance(adapters, dict):
-                adapters = [adapters]
-            
-            for adapter in adapters:
-                if adapter['Type'] == 'Wireless':
-                    wifi_adapters.append(adapter)
-                elif adapter['Type'] == 'Wired':
-                    wired_adapters.append(adapter)
-                    
-    except Exception as e:
-        log_message(f"Error detecting network interfaces: {e}")
+        if any(x in description for x in ['wireless', 'wi-fi', 'wifi', '802.11']) or \
+           any(x in name for x in ['wireless', 'wi-fi', 'wifi']):
+            adapter['Type'] = 'Wireless'
+            wifi_adapters.append(adapter)
+        elif any(x in description for x in ['ethernet', 'lan', 'gigabit']) or \
+             any(x in name for x in ['ethernet', 'lan']):
+            adapter['Type'] = 'Wired'
+            wired_adapters.append(adapter)
+        else:
+            adapter['Type'] = 'Unknown'
+            # Default to wired for unknown physical adapters
+            wired_adapters.append(adapter)
     
     return wifi_adapters, wired_adapters
 
+# =========================
+# MAC Address Functions
+# =========================
+
 def generate_random_mac_no_sep() -> str:
     """Generate random MAC address without separators."""
-    # first byte: set locally administered (bit 1 = 1) and unicast (bit 0 = 0)
     first = random.randint(0x00, 0xFF)
     first = (first & 0b11111100) | 0b00000010  # ensure bits: xxxxxx10
     remaining = [random.randint(0x00, 0xFF) for _ in range(5)]
     mac_bytes = [first] + remaining
-    return ''.join(f"{b:02X}" for b in mac_bytes)
+    return ''.join(f"{b:E2X}" for b in mac_bytes)
 
 def generate_mac_starting_02():
     """Generate a MAC address that begins with 02 (locally administered)."""
@@ -286,62 +281,6 @@ def change_mac_registry_method(adapter_name, new_mac):
     except Exception as e:
         return False, f"Registry method exception: {str(e)}"
 
-def change_mac_device_manager_method(adapter_name, new_mac):
-    """Change MAC address using devcon utility (Device Manager method)."""
-    try:
-        # First get the device instance ID
-        ps_cmd = f"""
-        $adapter = Get-NetAdapter -Name '{adapter_name}' -ErrorAction SilentlyContinue
-        if ($adapter) {{ Write-Output $adapter.InterfaceDescription }}
-        """
-        rc, interface_desc, err = run_powershell(ps_cmd)
-        
-        if rc != 0 or not interface_desc:
-            return False, "Could not get interface description"
-        
-        # Try to find devcon.exe in common locations
-        devcon_paths = [
-            r"C:\Windows\System32\devcon.exe",
-            r"C:\Program Files (x86)\Windows Kits\10\Tools\x64\devcon.exe",
-            r"C:\Program Files (x86)\Windows Kits\8.1\Tools\x64\devcon.exe"
-        ]
-        
-        devcon = None
-        for path in devcon_paths:
-            if os.path.exists(path):
-                devcon = path
-                break
-        
-        if not devcon:
-            return False, "devcon.exe not found"
-        
-        # Disable the adapter
-        disable_cmd = f'"{devcon}" disable "@{interface_desc}"'
-        result = subprocess.run(disable_cmd, shell=True, capture_output=True, text=True)
-        
-        if result.returncode != 0:
-            return False, f"Failed to disable adapter: {result.stderr}"
-        
-        # Set MAC address in registry (we'll use the same registry method)
-        success, msg = change_mac_registry_method(adapter_name, new_mac)
-        if not success:
-            # Re-enable adapter if MAC change failed
-            enable_cmd = f'"{devcon}" enable "@{interface_desc}"'
-            subprocess.run(enable_cmd, shell=True, capture_output=True, text=True)
-            return False, msg
-        
-        # Re-enable the adapter
-        enable_cmd = f'"{devcon}" enable "@{interface_desc}"'
-        result = subprocess.run(enable_cmd, shell=True, capture_output=True, text=True)
-        
-        if result.returncode == 0:
-            return True, "MAC changed successfully using Device Manager method"
-        else:
-            return False, f"Failed to re-enable adapter: {result.stderr}"
-            
-    except Exception as e:
-        return False, f"Device Manager method exception: {str(e)}"
-
 def restart_network_adapter(adapter_name):
     """Restart network adapter using multiple methods."""
     methods = [
@@ -351,14 +290,6 @@ def restart_network_adapter(adapter_name):
         Start-Sleep -Seconds 2
         netsh interface set interface \"{adapter_name}\" admin=enable
         """),
-        ("WMI Method", f"""
-        $adapter = Get-WmiObject -Class Win32_NetworkAdapter | Where-Object {{ $_.NetConnectionId -eq '{adapter_name}' }}
-        if ($adapter) {{
-            $adapter.Disable()
-            Start-Sleep -Seconds 2
-            $adapter.Enable()
-        }}
-        """)
     ]
     
     for method_name, cmd in methods:
@@ -406,7 +337,6 @@ def set_mac_and_restart(adapter_name, new_mac):
         ("PowerShell Set-NetAdapter", lambda: _try_ps_set_netadapter(adapter_name, new_mac)),
         ("PowerShell Advanced Properties", lambda: _try_ps_advanced_properties(adapter_name, new_mac)),
         ("Registry Method", lambda: change_mac_registry_method(adapter_name, new_mac)),
-        ("Device Manager Method", lambda: change_mac_device_manager_method(adapter_name, new_mac))
     ]
     
     for method_name, method_func in methods:
@@ -414,6 +344,7 @@ def set_mac_and_restart(adapter_name, new_mac):
         success, message = method_func()
         if success:
             # Restart adapter after successful MAC change
+            time.sleep(2)
             restart_success = restart_network_adapter(adapter_name)
             if restart_success:
                 return True, f"{method_name}: {message} - Adapter restarted"
@@ -495,17 +426,6 @@ def change_wifi_mac():
             print("FAILED to set MAC. Details:")
             print(info)
             log_message(f"Wi-Fi MAC change failed for {adapter_name}: {info}")
-            
-            # Provide user with manual instructions
-            print("\n" + "="*50)
-            print("MANUAL FALLBACK INSTRUCTIONS:")
-            print("1. Open Device Manager (devmgmt.msc)")
-            print("2. Find your Wi-Fi adapter under 'Network adapters'")
-            print("3. Right-click → Properties → Advanced tab")
-            print("4. Look for 'Network Address' or 'Locally Administered Address'")
-            print("5. Set value to:", formatted_mac)
-            print("6. Disable and re-enable the adapter")
-            print("="*50)
     
     print(f"Wi-Fi MAC change completed: {success_count}/{len(wifi_adapters)} adapters changed")
     return success_count > 0
@@ -604,48 +524,42 @@ def change_all_physical_mac():
     print(f"\nPhysical MAC change summary: {success_count}/{len(all_adapters)} adapters changed successfully")
     return success_count > 0
 
-def randomize_all_mac_addresses():
-    """Legacy function - alias for change_all_physical_mac."""
-    return change_all_physical_mac()
-
 # =========================
 # Network / DNS / IPv6 ULA
 # =========================
-
-def get_connected_adapter_name() -> str:
-    """Get the name of the first connected network adapter."""
-    try:
-        result = subprocess.run(
-            ["powershell", "-Command", "Get-NetAdapter | Where-Object { $_.Status -eq 'Up' } | Select-Object -First 1 -ExpandProperty Name"],
-            capture_output=True, text=True, check=True
-        )
-        return result.stdout.strip()
-    except subprocess.CalledProcessError:
-        return ""
-
-import os
-import subprocess
 
 def assign_ula(adapter_name: str):
     """Assign a random IPv6 ULA /64 address to the adapter."""
     try:
         # Generate a random ULA prefix (fd00::/8)
         random_bytes = os.urandom(5)
-        ula_prefix = "fd{:02x}:{:02x}{:02x}::".format(
+        ula_prefix = "fd{:02x}:{:02x}{:02x}".format(
             random_bytes[0], random_bytes[1], random_bytes[2]
         )
         
-        ula_address = f"{ula_prefix}1/64"
+        ula_address = f"{ula_prefix}::1/64"
 
-        # Assign the address
-        subprocess.run(
-            ["netsh", "interface", "ipv6", "add", "address", adapter_name, ula_address],
-            check=True
-        )
-        log_message(f"Assigned IPv6 ULA address: {ula_address}")
-    except subprocess.CalledProcessError as e:
+        # Assign the address using PowerShell
+        ps_cmd = f"""
+        $adapter = Get-NetAdapter -Name '{adapter_name}' -ErrorAction SilentlyContinue
+        if ($adapter) {{
+            Remove-NetIPAddress -InterfaceIndex $adapter.InterfaceIndex -AddressFamily IPv6 -Confirm:$false -ErrorAction SilentlyContinue
+            New-NetIPAddress -InterfaceIndex $adapter.InterfaceIndex -AddressFamily IPv6 -IPAddress "{ula_address}" -PrefixLength 64 -ErrorAction SilentlyContinue
+            Write-Output "SUCCESS"
+        }}
+        """
+        
+        rc, out, err = run_powershell(ps_cmd)
+        if rc == 0 and "SUCCESS" in out:
+            log_message(f"Assigned IPv6 ULA address: {ula_address}")
+            return True
+        else:
+            log_message(f"Failed to assign ULA address via PowerShell: {err}")
+            return False
+            
+    except Exception as e:
         log_message(f"Failed to assign ULA address: {e}")
-
+        return False
 
 def pick_unique(items: list, count: int) -> list:
     """Pick unique random items from a list."""
@@ -656,40 +570,102 @@ def pick_unique(items: list, count: int) -> list:
 def set_ipv4_dns(adapter_name: str, servers: list):
     """Set IPv4 DNS servers for the specified adapter."""
     try:
-        # Set to static primary first
         if not servers:
             # revert to DHCP
-            subprocess.run(["netsh", "interface", "ipv4", "set", "dnsservers", "name="+adapter_name, "source=dhcp"], check=True)
-            log_message(f"Reverted IPv4 DNS to DHCP for {adapter_name}")
+            ps_cmd = f"""
+            Set-DnsClientServerAddress -InterfaceAlias '{adapter_name}' -ResetServerAddresses
+            Write-Output "SUCCESS"
+            """
+            rc, out, err = run_powershell(ps_cmd)
+            if rc == 0:
+                log_message(f"Reverted IPv4 DNS to DHCP for {adapter_name}")
             return
-        # set primary
-        subprocess.run(["netsh", "interface", "ipv4", "set", "dnsservers", "name="+adapter_name, "static", servers[0], "primary"], check=True)
-        for i, srv in enumerate(servers[1:], start=2):
-            subprocess.run(["netsh", "interface", "ipv4", "add", "dnsservers", "name="+adapter_name, srv, f"index={i}"], check=True)
-        log_message(f"Set IPv4 DNS servers to: {', '.join(servers)}")
-    except subprocess.CalledProcessError as e:
+        
+        # Set static DNS servers
+        servers_str = ",".join([f'"{s}"' for s in servers])
+        ps_cmd = f"""
+        Set-DnsClientServerAddress -InterfaceAlias '{adapter_name}' -ServerAddresses @({servers_str})
+        Write-Output "SUCCESS"
+        """
+        
+        rc, out, err = run_powershell(ps_cmd)
+        if rc == 0:
+            log_message(f"Set IPv4 DNS servers to: {', '.join(servers)}")
+            return True
+        else:
+            log_message(f"Failed to set IPv4 DNS: {err}")
+            return False
+            
+    except Exception as e:
         log_message(f"Failed to set IPv4 DNS: {e}")
+        return False
 
 def set_ipv6_dns(adapter_name: str, servers: list):
     """Set IPv6 DNS servers for the specified adapter."""
     try:
-        # First clear existing DNS
-        subprocess.run(
-            ["netsh", "interface", "ipv6", "set", "dnsservers", 
-             f'"{adapter_name}"', "static", "none"],
-            check=False
-        )
+        if not servers:
+            return True
+            
+        # Set IPv6 DNS servers
+        servers_str = ",".join([f'"{s}"' for s in servers])
+        ps_cmd = f"""
+        Set-DnsClientServerAddress -InterfaceAlias '{adapter_name}' -ServerAddresses @({servers_str})
+        Write-Output "SUCCESS"
+        """
         
-        # Set new DNS servers
-        for i, server in enumerate(servers, 1):
-            subprocess.run(
-                ["netsh", "interface", "ipv6", "add", "dnsservers", 
-                 f'"{adapter_name}"', server, str(i)],
-                check=True
-            )
-        log_message(f"Set IPv6 DNS servers to: {', '.join(servers)}")
-    except subprocess.CalledProcessError as e:
+        rc, out, err = run_powershell(ps_cmd)
+        if rc == 0:
+            log_message(f"Set IPv6 DNS servers to: {', '.join(servers)}")
+            return True
+        else:
+            log_message(f"Failed to set IPv6 DNS: {err}")
+            return False
+            
+    except Exception as e:
         log_message(f"Failed to set IPv6 DNS: {e}")
+        return False
+
+def configure_network_settings():
+    """Configure DNS and ULA for active network adapters."""
+    log_message("Configuring network settings...")
+    
+    # Get all adapters
+    adapters = get_all_network_adapters()
+    if not adapters:
+        log_message("No network adapters found. Skipping network configuration.")
+        return False
+    
+    success_count = 0
+    for adapter in adapters:
+        adapter_name = adapter['Name']
+        adapter_status = adapter.get('Status', 'Unknown')
+        
+        log_message(f"Configuring adapter: {adapter_name} (Status: {adapter_status})")
+        
+        # Configure DNS servers
+        ipv4_dns = pick_unique(DNS_V4, NUM_IPV4_DNS)
+        ipv6_dns = pick_unique(DNS_V6, NUM_IPV6_DNS)
+        
+        dns_success = True
+        if ipv4_dns:
+            if not set_ipv4_dns(adapter_name, ipv4_dns):
+                dns_success = False
+        
+        if ipv6_dns:
+            if not set_ipv6_dns(adapter_name, ipv6_dns):
+                dns_success = False
+        
+        # Assign ULA address
+        ula_success = assign_ula(adapter_name)
+        
+        if dns_success or ula_success:
+            success_count += 1
+            log_message(f"Successfully configured {adapter_name}")
+        else:
+            log_message(f"Failed to configure {adapter_name}")
+    
+    log_message(f"Network configuration completed: {success_count}/{len(adapters)} adapters configured")
+    return success_count > 0
 
 # =========================
 # GUID / Hostname
@@ -697,16 +673,12 @@ def set_ipv6_dns(adapter_name: str, servers: list):
 
 def generate_new_guid() -> str:
     """Generate a GUID with random words a-z and numbers 1-9."""
-    # Create a custom alphabet with letters a-z and numbers 1-9
-    chars = "abcdefghijklmnopqrstuvwxyz123456789"
-    
-    # Generate each part of the GUID with random characters
+    chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ6789012345"
     part1 = ''.join(random.choices(chars, k=8))
     part2 = ''.join(random.choices(chars, k=4))
     part3 = ''.join(random.choices(chars, k=4))
     part4 = ''.join(random.choices(chars, k=4))
     part5 = ''.join(random.choices(chars, k=12))
-    
     return f"{part1}-{part2}-{part3}-{part4}-{part5}"
 
 def _current_machine_guid() -> str | None:
@@ -758,13 +730,10 @@ def reset_computer_guid(new_guid: str) -> bool:
         log_message(f"[ERROR] Failed to reset MachineGuid: {e}\nSTDOUT: {e.stdout}\nSTDERR: {e.stderr}")
         return False
 
-import random
-import subprocess
-
 def generate_machine_name() -> str:
     """Generate random machine name."""
-    suffix = ''.join(random.choices("ABCDEFGHIJKLMNOPQRSTUVWXYZ", k=5))
-    return f"SidDesktop-{suffix}"
+    suffix = ''.join(random.choices("ABCDEFGHIJKLMNOPQRSTUVWXYZ6789012345", k=8))
+    return f"SID-{suffix}"
 
 def set_machine_name(new_name: str) -> bool:
     """Set machine name."""
@@ -798,14 +767,9 @@ def set_machine_name(new_name: str) -> bool:
         log_message(f"STDERR: {e.stderr}")
         return False
 
-
 # =========================
 # Sysprep / SID logic
 # =========================
-
-import os
-import stat
-import subprocess
 
 def cleanup_sysprep_logs_recursive():
     """Recursively delete leftover Sysprep XML and log files in Panther and ActionFiles."""
@@ -860,8 +824,6 @@ def get_machine_sid_from_admin_sid() -> str:
         log_message(f"[WARN] Unable to query Administrator SID: {e}")
         return "UNKNOWN"
 
-import subprocess
-
 def try_log_psgetsid():
     """Log the machine SID and all local user SIDs using PowerShell."""
     try:
@@ -898,8 +860,6 @@ def try_log_psgetsid():
 
     except Exception as e:
         log_message(f"[WARN] Failed to get SIDs: {e}")
-
-
 
 def schedule_post_reboot_verification() -> bool:
     script_path = os.path.abspath(sys.argv[0])
@@ -1001,38 +961,6 @@ def regenerate_sid_with_sysprep() -> bool:
         return False
 
 # =========================
-# Windows Firewall Security
-# =========================
-
-def configure_windows_firewall():
-    """Enable and configure Windows Firewall for all profiles."""
-    try:
-        log_message("[INFO] Configuring Windows Firewall...")
-
-        # Enable Firewall for Domain, Private, and Public profiles
-        profiles = ["Domain", "Private", "Public"]
-        for profile in profiles:
-            cmd = f"Set-NetFirewallProfile -Profile {profile} -Enabled True -DefaultInboundAction Block -DefaultOutboundAction Allow"
-            rc, out, err = run_powershell(cmd)
-            if rc == 0:
-                log_message(f"[INFO] Firewall enabled for {profile} profile. Inbound blocked, Outbound allowed.")
-            else:
-                log_message(f"[WARN] Could not configure {profile} profile: {err}")
-
-        # Enable logging for dropped packets
-        cmd_logging = r"""
-        Set-NetFirewallProfile -Profile Domain,Private,Public -LogFileName '%systemroot%\system32\LogFiles\Firewall\pfirewall.log' -LogMaxSizeKilobytes 16384 -LogAllowed True -LogBlocked True
-        """
-        rc, out, err = run_powershell(cmd_logging)
-        if rc == 0:
-            log_message("[INFO] Firewall logging configured.")
-        else:
-            log_message(f"[WARN] Failed to configure firewall logging: {err}")
-
-    except Exception as e:
-        log_message(f"[ERROR] Windows Firewall configuration failed: {e}")
-
-# =========================
 # Main
 # =========================
 
@@ -1056,6 +984,7 @@ def main():
     parser.add_argument("--wired-only", action="store_true", help="Only change wired Ethernet MAC address.")
     parser.add_argument("--all-mac", action="store_true", help="Change MAC addresses for all network adapters.")
     parser.add_argument("--physical-mac", action="store_true", help="Change MAC addresses for all physical adapters (wired + wireless).")
+    parser.add_argument("--network-only", action="store_true", help="Only configure network settings (DNS/ULA).")
     args = parser.parse_args()
 
     if args.post_reboot:
@@ -1063,8 +992,18 @@ def main():
         return
 
     banner()
-    # Configure Windows Firewall for added security
-    configure_windows_firewall()
+
+    # Network-only configuration mode
+    if args.network_only:
+        if not is_admin():
+            log_message("Admin privileges required for network configuration.")
+            if run_as_admin():
+                sys.exit(0)
+            else:
+                sys.exit(1)
+        success = configure_network_settings()
+        sys.exit(0 if success else 1)
+
     # Wi-Fi MAC change only mode
     if args.wifi_only:
         if not is_admin():
@@ -1121,20 +1060,9 @@ def main():
     log_message("Randomizing MAC addresses for all physical network adapters...")
     change_all_physical_mac()
 
-    adapter = get_connected_adapter_name()
-    if adapter:
-        log_message(f"Using network adapter: {adapter}")
-        assign_ula(adapter)
-
-        ipv4_dns = pick_unique(DNS_V4, NUM_IPV4_DNS)
-        ipv6_dns = pick_unique(DNS_V6, NUM_IPV6_DNS)
-
-        if ipv4_dns:
-            set_ipv4_dns(adapter, ipv4_dns)
-        if ipv6_dns:
-            set_ipv6_dns(adapter, ipv6_dns)
-    else:
-        log_message("[WARN] No active network adapter detected. Skipping DNS/ULA configuration.")
+    # Configure network settings (DNS and ULA)
+    log_message("Configuring network settings...")
+    configure_network_settings()
 
     # Reset MachineGuid (delete & set new)
     new_guid = generate_new_guid()

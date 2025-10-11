@@ -63,9 +63,127 @@ This tool helps **obfuscate system fingerprints** and **automate post-deployment
    - Type `A` for advanced options
 
 
-## Demo / Walkthrough Video
 
+Benefits of the System Secure Script
+🛡️ Complete System Anonymity & Security
+1. Network Identity Protection
+MAC Address Randomization: Changes both Wi-Fi and Ethernet MAC addresses
+
+Prevents device tracking across networks
+
+Bypasses MAC filtering restrictions
+
+Enhances privacy on public networks
+
+Uses locally administered MAC addresses (02:XX:XX:XX:XX:XX) that can't be traced to manufacturer
+
+2. Advanced DNS Protection
+Massive DNS Server Pool: 60+ IPv4 and 40+ IPv6 DNS servers
+
+Geographic Diversity: Servers from multiple countries and providers
+
+Automatic Rotation: Randomly selects different DNS servers each time
+
+Hostinger Geofeed Integration: Additional IP ranges from global hosting provider
+
+Benefits:
+
+Prevents DNS-based tracking
+
+Bypasses geographic restrictions
+
+Enhances browsing privacy
+
+Improves DNS resolution reliability
+
+3. IP Address & Subnet Mask Randomization
+Dynamic Subnet Configuration: Randomly assigns from 9 different subnet masks
+
+Automatic IP Generation: Creates appropriate IP addresses for each subnet
+
+Benefits:
+
+Makes network fingerprinting difficult
+
+Prevents IP-based correlation attacks
+
+Enhances local network privacy
+
+Useful for penetration testing and security research
+
+🔄 System Identity Protection
+4. Machine GUID Regeneration
+Complete GUID Reset: Deletes and regenerates Windows MachineGuid
+
+Registry Modification: Changes cryptographic machine identity
+
+Benefits:
+
+Prevents software licensing tracking
+
+Resets Windows activation fingerprint
+
+Defeats hardware-based DRM systems
+
+Creates new system identity for forensic purposes
+
+5. Computer Name Randomization
+Dynamic Hostname Generation: Creates random computer names (SID-XXXXXXXX)
+
+Benefits:
+
+Prevents network identification
+
+Enhances corporate network privacy
+
+Useful for red team operations
+
+Resets system naming for clean slate
+
+6. SID Regeneration via Sysprep
+Complete System SID Reset: Uses Microsoft Sysprep tool
+
+Machine & User SID Regeneration: Creates new security identifiers
+
+Benefits:
+
+Complete system identity reset
+
+Prevents SID-based tracking
+
+Essential for forensic anonymity
+
+Creates genuinely new system instance
+
+🌐 Advanced Network Features
+7. IPv6 ULA Address Assignment
+Unique Local Addresses: Generates random IPv6 ULA addresses (fd00::/8)
+
+Benefits:
+
+Enhances IPv6 privacy
+
+Prevents IPv6 address tracking
+
+Provides additional network layer
+
+Future-proofs privacy protection
+
+8. Comprehensive Network Detection
+Smart Adapter Identification: Automatically detects wired vs wireless adapters
+
+Physical Adapter Filtering: Excludes virtual/VPN adapters
+
+Benefits:
+
+Targeted configuration
+
+Prevents configuration conflicts
+
+Ensures only real hardware is modified
+
+Reduces system instability risk
 [![Watch the video on YouTube](https://img.youtube.com/vi/Hc1B5MA4E7o/0.jpg)](https://www.youtube.com/watch?v=Hc1B5MA4E7o)
-
+## Demo / Walkthrough Video
 **[Watch on YouTube →](https://www.youtube.com/watch?v=Hc1B5MA4E7o)**
 

@@ -20,7 +20,7 @@ from typing import List, Tuple, Set
 # Config / Constants
 # =========================
 LOG_FILE = ("secure.log")
-
+SCHEDULED_TASK_NAME = "SIDVerification"
 
 
 def is_admin() -> bool:
@@ -1512,3 +1512,4 @@ def main():
 if __name__ == "__main__":
 
     main()
+

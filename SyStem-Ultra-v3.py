@@ -20,7 +20,7 @@ from typing import List, Tuple, Set
 # Config / Constants
 # =========================
 LOG_FILE = ("secure.log")
-SCHEDULED_TASK_NAME = "SIDVerification"
+SCHEDULED_TASK_NAME = "SIDRegenerationVerification"
 
 
 def is_admin() -> bool:
@@ -41,455 +41,121 @@ def run_as_admin() -> bool:
         print(f"[ERROR] Failed to elevate privileges: {e}")
         return False
         
-# Add subnet mask constants
 SUBNET_MASKS = [
-"255.255.77.1",
-"255.255.77.2",
-"255.255.77.3",
-"255.255.77.4",
-"255.255.77.5",
-"255.255.77.6",
-"255.255.77.7",
-"255.255.77.8",
-"255.255.77.9",
-"255.255.77.10",
-"255.255.77.11",
-"255.255.77.12",
-"255.255.77.13",
-"255.255.77.14",
-"255.255.77.15",
-"255.255.77.16",
-"255.255.77.17",
-"255.255.77.18",
-"255.255.77.19",
-"255.255.77.20",
-"255.255.77.21",
-"255.255.77.22",
-"255.255.77.23",
-"255.255.77.24",
-"255.255.77.25",
-"255.255.77.26",
-"255.255.77.27",
-"255.255.77.28",
-"255.255.77.29",
-"255.255.77.30",
-"255.255.77.31",
-"255.255.77.32",
-"255.255.77.33",
-"255.255.77.34",
-"255.255.77.35",
-"255.255.77.36",
-"255.255.77.37",
-"255.255.77.38",
-"255.255.77.39",
-"255.255.77.40",
-"255.255.77.41",
-"255.255.77.42",
-"255.255.77.43",
-"255.255.77.44",
-"255.255.77.45",
-"255.255.77.46",
-"255.255.77.47",
-"255.255.77.48",
-"255.255.77.49",
-"255.255.77.50",
-"255.255.77.51",
-"255.255.77.52",
-"255.255.77.53",
-"255.255.77.54",
-"255.255.77.55",
-"255.255.77.56",
-"255.255.77.57",
-"255.255.77.58",
-"255.255.77.59",
-"255.255.77.60",
-"255.255.77.61",
-"255.255.77.62",
-"255.255.77.63",
-"255.255.77.64",
-"255.255.77.65",
-"255.255.77.66",
-"255.255.77.67",
-"255.255.77.68",
-"255.255.77.69",
-"255.255.77.70",
-"255.255.77.71",
-"255.255.77.72",
-"255.255.77.73",
-"255.255.77.74",
-"255.255.77.75",
-"255.255.77.76",
+    "255.0.0.0",
+    "255.128.0.0", 
+    "255.192.0.0",
 
 ]
 
+# HTTPS DNS Servers - IPv4
+HTTPS_DNS_V4 = [
+    "8.8.8.8",           # Google DNS (supports DNS-over-HTTPS)
+    "1.1.1.1",           # Cloudflare DNS (supports DNS-over-HTTPS)
+    "9.9.9.9",           # Quad9 DNS (supports DNS-over-HTTPS)
+    "94.140.14.14",      # AdGuard DNS (supports DNS-over-HTTPS)
+    "185.228.168.168",   # CleanBrowsing DNS (supports DNS-over-HTTPS)
+    "76.76.19.19",       # Alternate DNS (supports DNS-over-HTTPS)
+    "76.223.122.150",    # Alternate DNS (supports DNS-over-HTTPS)
+    "208.67.222.222",    # OpenDNS (supports DNS-over-HTTPS)
+    "8.26.56.26",        # Comodo Secure DNS
+    "64.6.64.6",         # Verisign DNS
+]
+
+# HTTPS DNS Servers - IPv6
+HTTPS_DNS_V6 = [
+    "2001:4860:4860::8888",      # Google DNS
+    "2606:4700:4700::1111",      # Cloudflare DNS
+    "2620:fe::fe",               # Quad9 DNS
+    "2a0d:2a00:1::",             # AdGuard DNS
+    "2a0d:2a00:2::",             # AdGuard DNS
+    "2606:4700:4700::1001",      # Cloudflare Family
+    "2001:678:9d::1",            # Digitalcourage DNS
+    "2a00:5a60::ad1:0ff",        # AdGuard Family
+    "2a00:5a60::ad2:0ff",        # AdGuard Family
+    "2a10:50c0::ad1:ff",         # AdGuard DNS
+]
+
 DNS_V4 = [
-"112.122.707.1",
-"112.122.707.2",
-"112.122.707.3",
-"112.122.707.4",
-"112.122.707.5",
-"112.122.707.6",
-"112.122.707.7",
-"112.122.707.8",
-"112.122.707.9",
-"112.122.707.10",
-"112.122.707.11",
-"112.122.707.12",
-"112.122.707.13",
-"112.122.707.14",
-"112.122.707.15",
-"112.122.707.16",
-"112.122.707.17",
-"112.122.707.18",
-"112.122.707.19",
-"112.122.707.20",
-"112.122.707.21",
-"112.122.707.22",
-"112.122.707.23",
-"112.122.707.24",
-"112.122.707.25",
-"112.122.707.26",
-"112.122.707.27",
-"112.122.707.28",
-"112.122.707.29",
-"112.122.707.30",
-"112.122.707.31",
-"112.122.707.32",
-"112.122.707.33",
-"112.122.707.34",
-"112.122.707.35",
-"112.122.707.36",
-"112.122.707.37",
-"112.122.707.38",
-"112.122.707.39",
-"112.122.707.40",
-"112.122.707.41",
-"112.122.707.42",
-"112.122.707.43",
-"112.122.707.44",
-"112.122.707.45",
-"112.122.707.46",
-"112.122.707.47",
-"112.122.707.48",
-"112.122.707.49",
-"112.122.707.50",
-"112.122.707.51",
-"112.122.707.52",
-"112.122.707.53",
-"112.122.707.54",
-"112.122.707.55",
-"112.122.707.56",
-"112.122.707.57",
-"112.122.707.58",
-"112.122.707.59",
-"112.122.707.60",
-"112.122.707.61",
-"112.122.707.62",
-"112.122.707.63",
-"112.122.707.64",
-"112.122.707.65",
-"112.122.707.66",
-"112.122.707.67",
-"112.122.707.68",
-"112.122.707.69",
-"112.122.707.70",
-"112.122.707.71",
-"112.122.707.72",
-"112.122.707.73",
-"112.122.707.74",
-"112.122.707.75",
-"112.122.707.76",
-"112.122.707.77",
-"112.122.707.78",
-"112.122.707.79",
-"112.122.707.80",
-"112.122.707.81",
-"112.122.707.82",
-"112.122.707.83",
-"112.122.707.84",
-"112.122.707.85",
-"112.122.707.86",
-"112.122.707.87",
-"112.122.707.88",
-"112.122.707.89",
-"112.122.707.90",
-"112.122.707.91",
-"112.122.707.92",
-"112.122.707.93",
-"112.122.707.94",
-"112.122.707.95",
-"112.122.707.96",
-"112.122.707.97",
-"112.122.707.98",
-"112.122.707.99",
-"112.122.707.100",
-"112.122.707.101",
-"112.122.707.102",
-"112.122.707.103",
-"112.122.707.104",
-"112.122.707.105",
-"112.122.707.106",
-"112.122.707.107",
-"112.122.707.108",
-"112.122.707.109",
-"112.122.707.110",
-"112.122.707.111",
-"112.122.707.112",
-"112.122.707.113",
-"112.122.707.114",
-"112.122.707.115",
-"112.122.707.116",
-"112.122.707.117",
-"112.122.707.118",
-"112.122.707.119",
-"112.122.707.120",
-"112.122.707.121",
-"112.122.707.122",
-"112.122.707.123",
-"112.122.707.124",
-"112.122.707.125",
-"112.122.707.126",
-"112.122.707.127",
-"112.122.707.128",
-"112.122.707.129",
-"112.122.707.130",
-"112.122.707.131",
-"112.122.707.132",
-"112.122.707.133",
-"112.122.707.134",
-"112.122.707.135",
-"112.122.707.136",
-"112.122.707.137",
-"112.122.707.138",
-"112.122.707.139",
-"112.122.707.140",
-"112.122.707.141",
-"112.122.707.142",
-"112.122.707.143",
-"112.122.707.144",
-"112.122.707.145",
-"112.122.707.146",
-"112.122.707.147",
-"112.122.707.148",
-"112.122.707.149",
-"112.122.707.150",
-"112.122.707.151",
-"112.122.707.152",
-"112.122.707.153",
-"112.122.707.154",
-"112.122.707.155",
-"112.122.707.156",
-"112.122.707.157",
-"112.122.707.158",
-"112.122.707.159",
-"112.122.707.160",
-"112.122.707.161",
-"112.122.707.162",
-"112.122.707.163",
-"112.122.707.164",
-"112.122.707.165",
-"112.122.707.166",
-"112.122.707.167",
-"112.122.707.168",
-"112.122.707.169",
-"112.122.707.170",
-"112.122.707.171",
-"112.122.707.172",
-"112.122.707.173",
-"112.122.707.174",
-"112.122.707.175",
-"112.122.707.176",
-"112.122.707.177",
-"112.122.707.178",
-"112.122.707.179",
-"112.122.707.180",
-"112.122.707.181",
-"112.122.707.182",
-"112.122.707.183",
-"112.122.707.184",
-"112.122.707.185",
-"112.122.707.186",
-"112.122.707.187",
-"112.122.707.188",
-"112.122.707.189",
-"112.122.707.190",
-"112.122.707.191",
-"112.122.707.192",
-"112.122.707.193",
-"112.122.707.194",
-"112.122.707.195",
-"112.122.707.196",
-"112.122.707.197",
-"112.122.707.198",
-"112.122.707.199",
-"112.122.707.200",
-"112.122.707.201",
-"112.122.707.202",
-"112.122.707.203",
-"112.122.707.204",
-"112.122.707.205",
-"112.122.707.206",
-"112.122.707.207",
-"112.122.707.208",
-"112.122.707.209",
-"112.122.707.210",
-"112.122.707.211",
-"112.122.707.212",
-"112.122.707.213",
-"112.122.707.214",
-"112.122.707.215",
-"112.122.707.216",
-"112.122.707.217",
-"112.122.707.218",
-"112.122.707.219",
-"112.122.707.220",
-"112.122.707.221",
-"112.122.707.222",
-"112.122.707.223",
-"112.122.707.224",
-"112.122.707.225",
-"112.122.707.226",
-"112.122.707.227",
-"112.122.707.228",
-"112.122.707.229",
-"112.122.707.230",
-"112.122.707.231",
-"112.122.707.232",
-"112.122.707.233",
-"112.122.707.234",
-"112.122.707.235",
-"112.122.707.236",
-"112.122.707.237",
-"112.122.707.238",
-"112.122.707.239",
-"112.122.707.240",
-"112.122.707.241",
-"112.122.707.242",
-"112.122.707.243",
-"112.122.707.244",
-"112.122.707.245",
-"112.122.707.246",
-"112.122.707.247",
-"112.122.707.248",
-"112.122.707.249",
-"112.122.707.250",
-"112.122.707.251",
-"112.122.707.252",
-"112.122.707.253",
-"112.122.707.254",
-"112.122.707.255",
+"1.1.1.1",
+"1.1.1.2",
+"1.1.1.3",
+"1.1.1.4",
+"1.1.1.5",
+"1.1.1.6",
+"1.1.1.7",
+"1.1.1.8",
+"1.1.1.9",
+"1.1.1.10",
+"1.1.1.11",
+"1.1.1.12",
+"1.1.1.13",
+"1.1.1.14",
+"1.1.1.15",
+"1.1.1.16",
+"1.1.1.17",
+"1.1.1.18",
+"1.1.1.19",
+"1.1.1.20",
+"1.1.1.21",
+"1.1.1.22",
+"1.1.1.23",
+"1.1.1.24",
+"1.1.1.25",
+"1.1.1.26",
+"1.1.1.27",
+"1.1.1.28",
+"1.1.1.29",
+"1.1.1.30",
+"1.1.1.31",
+"1.1.1.32",
+"1.1.1.33",
+"1.1.1.34",
+"1.1.1.35",
+"1.1.1.36",
+"1.1.1.37",
+"1.1.1.38",
+"1.1.1.39",
+"1.1.1.40",
+"1.1.1.41",
+"1.1.1.42",
+"1.1.1.43",
+"1.1.1.44",
+"1.1.1.45",
+"1.1.1.46",
+"1.1.1.47",
+"1.1.1.48",
+"1.1.1.49",
+"1.1.1.50",
+"1.1.1.51",
+"1.1.1.52",
+"1.1.1.53",
+"1.1.1.54",
+"1.1.1.55",
+"1.1.1.56",
 
 ]
 
 DNS_V6 = [
-"fd06:b7c7:971b:1d7:97c0:3999:1515:2b51",
-"fd07:bceb:a1d9:66c7:6bfb:33c7:3998:40dc",
-"fd08:c152:aece:a100:9430:615:acab:7404",
-"fd0a:97a5:8462:e98e:88a6:6105:94b3:a5f1",
-"fd0a:cd38:f6f9:d4b8:ca2c:ed3b:2995:bc87",
-"fd0a:eb61:30ef:b0ba:3768:6e57:96f8:2bfa",
-"fd0c:1f8:efd8:3e52:6e6d:5ea1:f7ec:f20b",
-"fd0e:66aa:f700:5bd4:a986:fcaa:368a:2df6",
-"fd0e:d44a:ae44:be8b:c825:987e:690b:208e",
-"fd10:a4c6:c966:9d47:329:6050:921f:70d4",
-"fd10:f1ef:579:5c24:ac92:e76:ab2d:6948",
-"fd1b:fb3b:1f26:63cb:4f48:d3a:7df7:e769",
-"fd1d:93d8:be21:43a0:8dff:74a6:99d1:811a",
-"fd20:5ee8:a467:b577:6606:a9b7:397a:7be",
-"fd24:9cfa:65af:f7a5:215e:8521:fb10:e5bc",
-"fd29:4aa7:b00:c5ee:a3ba:b41c:80f4:c391",
-"fd2e:b60b:4595:7d04:7629:c7d9:ebda:89",
-"fd30:8206:e9bb:a1b9:df9c:5280:625a:c103",
-"fd31:fb61:5b19:a2c4:4b3f:aa31:d72b:d2ed",
-"fd37:3356:d9d9:c431:9d94:888a:a740:9921",
-"fd37:78c6:3933:b0b4:2aaf:e35d:6743:6a37",
-"fd37:a894:8946:3fa1:b4fb:22f4:f00b:c90d",
-"fd3e:e8a5:76f3:abcb:84da:bd01:5049:d171",
-"fd41:4173:547:6afb:76f2:38cf:c94f:c2a7",
-"fd42:4f12:f929:ced4:719f:d6e5:8847:d4d2",
-"fd45:4f36:8887:5da7:1af2:3402:a84e:c707",
-"fd46:f1c6:c38f:834c:93a3:b00b:36fb:ffc",
-"fd47:d3a5:e25c:9c1d:6bf4:cd9d:2e98:1a70",
-"fd49:6551:bc20:1702:ae8e:fb21:53:8416",
-"fd4c:39d3:903e:d832:2baf:fc6e:e877:5d20",
-"fd4c:6abd:514c:ed92:b604:e84d:b5f9:4a9c",
-"fd4c:efd6:c3aa:9727:8d70:be2c:c4dd:450c",
-"fd4d:7c36:8cbe:2a30:31d9:bfec:1e2f:ad35",
-"fd56:1b85:dade:d542:127f:7172:2256:544",
-"fd56:4b0:29be:7375:86bc:3ac4:7c97:4072",
-"fd57:8c30:31c2:5301:2666:ae3f:3d8b:59b0",
-"fd58:8f9c:2ecb:d77d:d415:4fac:3cfb:9ad6",
-"fd5c:eb4f:c31b:d8b2:4bb8:31b1:885b:b928",
-"fd5d:ce73:bb0a:e8b4:3b4d:f966:738f:3ed9",
-"fd61:ecf2:2ae:84a1:f3f6:d585:541:718f",
-"fd63:b7bf:d9b6:57a2:dbdf:5d7c:7fd5:1090",
-"fd64:8466:241:42d7:b213:ef9b:b8cc:8e8e",
-"fd64:c8d0:6c8e:2a3:c058:d658:82ce:28a2",
-"fd67:8f8c:3ef6:bc9c:cb5c:ee73:96a5:88ee",
-"fd69:4e31:7dab:7eff:9e97:58ee:d6a1:97b5",
-"fd6a:bae0:22fc:2fa7:1104:38cb:4dfa:74ad",
-"fd6d:1414:1e9c:4413:3d7d:7a85:2ec3:9a",
-"fd79:bc3b:9409:239:efb3:22b:3473:f45d",
-"fd7a:4588:b07e:74b7:a21b:a4ad:6364:9282",
-"fd7f:b4d0:beaf:5ede:4cf7:43b1:f8b3:e0d6",
-"fd80:4966:a455:c9c3:77b8:abef:e5e1:d27c",
-"fd81:f6a5:2f55:a78d:be8f:e55:75de:1e2",
-"fd82:8cfa:fe:8315:1c7d:6cc9:d132:a92e",
-"fd86:84f8:ec6d:96c:8014:2d77:3159:20b5",
-"fd89:2673:9cbf:3ac8:8af1:4ae1:4ec3:ed3",
-"fd8b:7b00:f1ac:4605:3ae0:8c86:695a:bbe9",
-"fd8c:cce1:5753:77ea:6128:8a40:7753:964",
-"fd8f:c57:8e62:9b0f:31f6:c342:e613:49b1",
-"fd90:b204:d249:d7fb:ae8:df97:41b9:5a39",
-"fd95:2130:d5e8:79cb:98c1:e8de:9f4f:58e4",
-"fd95:75f0:e5bb:ee7a:4ac4:69d3:b120:8c16",
-"fd96:11cd:8091:e22a:a440:6b8f:7830:340c",
-"fd96:a199:ce1f:7744:532c:e123:1f1b:8ecf",
-"fd96:bedb:23ff:9d53:ad98:ed3a:6fa:c499",
-"fd97:31a4:5fad:1666:a20c:3e17:26ff:b5bf",
-"fd97:50c5:7eed:1f94:2c6a:ddb1:e7fb:c27a",
-"fd9e:8cb6:8fc7:8e65:5d2d:37d1:dc88:3430",
-"fda5:ff9f:65f1:9697:46f7:7143:36f8:a3c2",
-"fda9:3c87:cc5d:2c6d:a3a1:32b3:116e:6349",
-"fdab:9ace:9ab8:112d:6046:f2b7:beba:9db9",
-"fdab:ab36:33f:f8c6:eda3:1a8e:759c:21ef",
-"fdac:bf60:ded7:e502:87ce:6afb:300f:cbd7",
-"fdb7:49a3:35ce:fee8:5ae8:240e:73f2:57a8",
-"fdba:2ba0:602e:56c8:785a:5a01:bf74:4a26",
-"fdbe:6a41:208:bde0:8b9a:eca2:934:5a63",
-"fdc0:5a6b:b65:5570:dcba:25bd:ed4a:2e26",
-"fdc2:9270:1f52:ab45:4948:27f9:c1e:56da",
-"fdc2:e363:a940:c511:f7:6c24:7c51:4b1f",
-"fdc7:195e:a470:d449:e4e1:30fa:5e54:b16",
-"fdc9:6cf6:3dd2:ad82:63e7:46c1:9214:be05",
-"fdca:527f:2cbf:fc92:8e6f:c7bf:47f8:5c7d",
-"fdcc:1999:8404:4023:e633:cc93:4954:51a0",
-"fdcc:34c3:94c7:256b:cd59:9b7d:a5c8:7abe",
-"fdcc:d0c4:33b:2691:7543:a8be:32ea:84b3",
-"fdcf:487d:6dcb:8cdd:fb12:6220:37b9:b62f",
-"fdd9:4501:7816:7c90:3467:8d8f:7c93:53f3",
-"fddb:992d:b733:5802:e317:1cc:c989:436",
-"fddb:f983:7f7c:6ecd:d234:751c:3421:215c",
-"fdde:5127:3b82:fb85:bcf2:d7ff:284e:c14c",
-"fde7:bf31:c82c:a6de:199a:56b9:510f:576d",
-"fdf4:df50:805e:22dd:dd0e:6c20:884b:cd2f",
-"fdf5:b790:c61d:f4f3:237f:2df1:b697:94ce",
-"fdf8:22d1:c7e0:c492:ed9d:1312:9caa:abb1",
-"fdf8:5998:df8a:8cd4:3828:81df:6eb1:d6bf",
-"fdf8:b689:d5df:bd0c:b678:c6b1:aa6b:2d82",
-"fdf8:d89a:f15a:ad6d:beb1:e1b6:18b0:e370",
-"fdf9:efc3:9ed7:193c:ccdf:8796:c617:6408",
-"fdfc:56f6:4f32:c268:f4a4:8742:1926:6c30",
-"fdfc:626b:280d:39a0:a55c:5b62:3603:4e2b",
-"fdfe:92e6:2a66:2179:324c:263:3c2a:6e29",
+"fd1a:a3e:4165:4098:14d3:c2a8:1b0b:5bbb",
+"fd1e:f55c:c372:fd64:a0f4:2444:8012:d0c3",
+"fd31:5b76:34ec:7c73:4fa5:9c4:88e9:5d56",
+"fd73:3be0:f642:57c9:29c7:73b9:566f:948",
+"fd87:ad2b:59f2:db44:1da:cd47:efa1:7e5b",
+"fd88:f15b:5c60:b905:1dfd:3e5d:459b:1947",
+"fd96:80fc:c402:cc2d:a8bd:ca4b:9835:c016",
+"fddf:851f:dfd5:f24b:3247:ef91:b434:592d",
+"fde9:d1f5:3e35:645d:39bc:f8c:6f08:4b37",
+"fdf4:2803:cae6:e79f:9476:d661:15a4:ffa6",
+
 ]
 
+# Combine regular DNS with HTTPS DNS servers
+ALL_DNS_V4 = DNS_V4 + HTTPS_DNS_V4
+ALL_DNS_V6 = DNS_V6 + HTTPS_DNS_V6
 
-
-
-
-NUM_IPV4_DNS = 20
-NUM_IPV6_DNS = 20
+NUM_IPV4_DNS = 10
+NUM_IPV6_DNS = 10
 
 # =========================
 # Helper Functions
@@ -903,9 +569,9 @@ def configure_network_settings():
         # Configure subnet mask and random IP
         subnet_success = configure_subnet_for_adapter(adapter_name)
         
-        # Configure DNS servers
-        ipv4_dns = pick_unique(DNS_V4, NUM_IPV4_DNS)
-        ipv6_dns = pick_unique(DNS_V6, NUM_IPV6_DNS)
+        # Configure DNS servers using combined list
+        ipv4_dns = pick_unique(ALL_DNS_V4, NUM_IPV4_DNS)
+        ipv6_dns = pick_unique(ALL_DNS_V6, NUM_IPV6_DNS)
         
         dns_success = True
         if ipv4_dns:
@@ -1033,16 +699,18 @@ def set_machine_name(new_name: str) -> bool:
 # =========================
 
 def cleanup_sysprep_logs_recursive():
-    """Recursively delete leftover Sysprep XML and log files in Panther and ActionFiles."""
-    targets = {"diagwrn.xml", "diagerr.xml", "setupact.txt", "setuperr.txt"}
+    """Recursively delete leftover Sysprep XML and log files in Panther and ActionFiles, and remove empty folders."""
+    targets = {"diagwrn.xml", "diagerr.xml", "setupact.txt", "setuperr.txt", "Microsoft", "pip", "Temp", 
+               "Package Cache", "Packages", "D3DSCache", "ConnectedDevicesPlatform", "Programs"}
     paths = [
         r"C:\Windows\System32\Sysprep\Panther",
-        r"C:\Windows\System32\Sysprep\ActionFiles"
+        r"C:\Windows\System32\Sysprep\ActionFiles",
+        r"C:\Users\sidgi\AppData\Local"
     ]
-
+    
     for root_path in paths:
         if os.path.exists(root_path):
-            for dirpath, dirnames, filenames in os.walk(root_path):
+            for dirpath, dirnames, filenames in os.walk(root_path, topdown=False):  # topdown=False to remove empty folders after files
                 for fname in filenames:
                     fpath = os.path.join(dirpath, fname)
                     if fname.lower().endswith(".xml") or fname.lower() in targets:
@@ -1055,6 +723,15 @@ def cleanup_sysprep_logs_recursive():
                             log_message(f"Deleted Sysprep file: {fpath}")
                         except Exception as e:
                             log_message(f"[WARN] Failed to delete {fname} in {dirpath}: {e}")
+                
+                # Remove empty directories
+                for dir_name in dirnames:
+                    dir_to_remove = os.path.join(dirpath, dir_name)
+                    try:
+                        os.rmdir(dir_to_remove)
+                        log_message(f"Deleted empty folder: {dir_to_remove}")
+                    except OSError as e:
+                        log_message(f"[WARN] Failed to delete folder {dir_to_remove}: {e}")
 
 def get_machine_sid_from_admin_sid() -> str:
     """Return base machine SID by finding local admin (-500) account SID."""
@@ -1139,6 +816,7 @@ def schedule_post_reboot_verification() -> bool:
         log_message(f"[ERROR] Failed to create scheduled task: {create.stderr.strip() or create.stdout.strip()}")
         return False
 
+
 def delete_scheduled_task():
     subprocess.run(["schtasks", "/Delete", "/TN", SCHEDULED_TASK_NAME, "/F"], capture_output=True, text=True)
 
@@ -1220,7 +898,6 @@ def regenerate_sid_with_sysprep() -> bool:
     except Exception as e:
         log_message(f"[ERROR] SID regeneration failed: {e}")
         return False
-
 # =========================
 # Missing Functions - ADDED
 # =========================
@@ -1231,16 +908,6 @@ def fetch_and_parse_hostinger_geofeed() -> Tuple[List[str], List[str]]:
     ipv6_addresses = set()
     
     try:
-        log_message("Fetching Hostinger geofeed data from GitHub...")
-        response = requests.get(
-            "https://raw.githubusercontent.com/hostinger/geofeed/main/geofeed.csv",
-            timeout=30,
-            headers={'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'}
-        )
-        response.raise_for_status()
-        
-        lines = response.text.split('\n')
-        log_message(f"Processing {len(lines)} lines from Hostinger geofeed")
         
         for line_num, line in enumerate(lines, 1):
             if not line.strip() or line.startswith('#'):
@@ -1305,8 +972,8 @@ def fetch_and_parse_hostinger_geofeed() -> Tuple[List[str], List[str]]:
 
 def get_comprehensive_dns_servers() -> Tuple[List[str], List[str]]:
     """Get comprehensive DNS server lists including base servers and Hostinger geofeed data."""
-    comprehensive_ipv4 = DNS_V4.copy()
-    comprehensive_ipv6 = DNS_V6.copy()
+    comprehensive_ipv4 = ALL_DNS_V4.copy()
+    comprehensive_ipv6 = ALL_DNS_V6.copy()
     
     hostinger_ipv4, hostinger_ipv6 = fetch_and_parse_hostinger_geofeed()
     
@@ -1510,6 +1177,4 @@ def main():
     sys.exit(0)
 
 if __name__ == "__main__":
-
     main()
-
